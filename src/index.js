@@ -1,17 +1,52 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React, { useContext, useReducer, useEffect, useState } from "react";
+
+import ReactDOM from "react-dom";
+import axios from "axios";
+import reportWebVitals from "./reportWebVitals";
+import TodosContext from "./content";
+import todoReducer from "./reducer";
+import TodoList from "./components/TodoList";
+import TodoForm from "./components/TodoForm";
+
+const useAPI = (endpoint) => {
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    getData();
+  }, []);
+  const getData = async () => {
+    const reponse = await axios.get(endpoint);
+    setData(reponse.data);
+  };
+  return data;
+};
+
+const App = () => {
+  const initialState = useContext(TodosContext);
+  const [state, dispatch] = useReducer(todoReducer, initialState);
+  const saveTodos = useAPI("https://hooks-api-thanhvan181.vercel.app/todos");
+  useEffect(() => {
+    dispatch(
+      {
+        type: "GET_TODOS",
+        payload: saveTodos,
+      },
+      
+    );
+  }, [saveTodos]);
+
+  return (
+    <TodosContext.Provider value={{ state, dispatch }}>
+      <TodoForm />
+      <TodoList />
+    </TodosContext.Provider>
+  );
+};
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+  <App />,
+
+  document.getElementById("root")
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
